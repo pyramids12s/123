@@ -1,0 +1,11 @@
+{
+  "products": {},
+  "background": "",
+  "logo": "",
+  "offers": [],
+  "offersVisible": false,
+  "offerTextColor": "#FFFFFF",
+  "offerBgColor": "#E74C3C",
+  "marqueeSpeed": 8,
+  "displayDuration": 10000
+}
