@@ -8,7 +8,6 @@
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
-
         :root {
             --bg: #F5F6FA;
             --white: #FFFFFF;
@@ -24,478 +23,255 @@
             --shadow: 0 4px 24px rgba(0,0,0,0.07);
             --shadow-md: 0 8px 32px rgba(0,0,0,0.10);
         }
-
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body { font-family:'Cairo',sans-serif; min-height:100vh; background:var(--bg); overflow-x:hidden; }
 
-        body {
-            font-family: 'Cairo', sans-serif;
-            min-height: 100vh;
-            background: var(--bg);
-            overflow-x: hidden;
+        /* LOADING */
+        #loadingScreen {
+            position: fixed; inset: 0;
+            background: var(--white);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 9999; gap: 16px;
         }
+        .loading-spinner {
+            width: 48px; height: 48px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text-mid); font-size: 15px; font-weight: 600; }
 
-        /* =========== MARQUEE - أعلى الصفحة =========== */
+        /* MARQUEE */
         #offersMarquee {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 999;
-            overflow: hidden;
-            display: none;
+            position: fixed; top: 0; left: 0;
+            width: 100%; z-index: 999;
+            overflow: hidden; display: none;
         }
-
-        .marquee-inner {
-            display: flex;
-            align-items: center;
-            padding: 11px 0;
-            overflow: hidden;
-        }
-
+        .marquee-inner { display:flex; align-items:center; padding:11px 0; overflow:hidden; }
         .marquee-track {
-            display: flex;
-            white-space: nowrap;
+            display: flex; white-space: nowrap;
             animation: marqueeScroll 8s linear infinite;
             will-change: transform;
         }
-
         .marquee-track:hover { animation-play-state: paused; }
-
         @keyframes marqueeScroll {
             0%   { transform: translateX(0); }
             100% { transform: translateX(-50%); }
         }
+        .marquee-text { display:inline-block; font-size:15px; font-weight:700; padding:0 20px; white-space:nowrap; font-family:'Cairo',sans-serif; }
+        .marquee-sep  { display:inline-block; padding:0 8px; font-size:14px; opacity:0.6; }
 
-        .marquee-text {
-            display: inline-block;
-            font-size: 15px;
-            font-weight: 700;
-            padding: 0 20px;
-            white-space: nowrap;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        .marquee-sep {
-            display: inline-block;
-            padding: 0 8px;
-            font-size: 14px;
-            opacity: 0.6;
-        }
-
-        /* =========== MAIN SCREEN =========== */
+        /* MAIN */
         #mainScreen {
-            width: 100vw;
-            min-height: 100vh;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-color: var(--bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 24px 16px;
-            position: relative;
+            width:100vw; min-height:100vh;
+            background-size:cover; background-position:center; background-repeat:no-repeat;
+            background-color:var(--bg);
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            padding:24px 16px; position:relative;
         }
-
         #mainScreen::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: rgba(245,246,250,0.82);
-            z-index: 0;
+            content:''; position:absolute; inset:0;
+            background:rgba(245,246,250,0.82); z-index:0;
         }
-
         .main-content {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 440px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 18px;
+            position:relative; z-index:1; width:100%; max-width:440px;
+            display:flex; flex-direction:column; align-items:center; gap:18px;
         }
+        #logoImg { max-width:160px; max-height:100px; object-fit:contain; display:none; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.10)); }
 
-        /* =========== LOGO =========== */
-        #logoImg {
-            max-width: 160px;
-            max-height: 100px;
-            object-fit: contain;
-            display: none;
-            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.10));
-        }
-
-        /* =========== INPUT CARD =========== */
-        .input-card {
-            width: 100%;
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 24px 20px;
-            box-shadow: var(--shadow);
-        }
-
-        .input-title {
-            color: var(--text-mid);
-            font-size: 15px;
-            font-weight: 600;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .barcode-wrapper { position: relative; margin-bottom: 12px; }
-
-        .barcode-icon {
-            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-            font-size: 20px; color: var(--text-light); pointer-events: none;
-        }
-
+        /* INPUT CARD */
+        .input-card { width:100%; background:var(--white); border:1px solid var(--border); border-radius:20px; padding:24px 20px; box-shadow:var(--shadow); }
+        .input-title { color:var(--text-mid); font-size:15px; font-weight:600; text-align:center; margin-bottom:16px; }
+        .barcode-wrapper { position:relative; margin-bottom:12px; }
+        .barcode-icon { position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:20px; color:var(--text-light); pointer-events:none; }
         #barcodeInput {
-            width: 100%; padding: 14px 46px 14px 14px;
-            font-size: 17px; font-family: 'Cairo', sans-serif; font-weight: 600;
-            border: 1.5px solid var(--border); border-radius: 12px;
-            background: var(--bg); color: var(--text-dark); text-align: center;
-            outline: none; transition: border-color 0.25s, box-shadow 0.25s;
-            direction: ltr; letter-spacing: 2px;
+            width:100%; padding:14px 46px 14px 14px; font-size:17px; font-family:'Cairo',sans-serif; font-weight:600;
+            border:1.5px solid var(--border); border-radius:12px; background:var(--bg); color:var(--text-dark);
+            text-align:center; outline:none; transition:border-color 0.25s,box-shadow 0.25s; direction:ltr; letter-spacing:2px;
         }
-
-        #barcodeInput::placeholder { color: var(--text-light); letter-spacing: 0; font-size: 13px; direction: rtl; }
-
-        #barcodeInput:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(91,141,239,0.13); }
-
+        #barcodeInput::placeholder { color:var(--text-light); letter-spacing:0; font-size:13px; direction:rtl; }
+        #barcodeInput:focus { border-color:var(--primary); background:#fff; box-shadow:0 0 0 3px rgba(91,141,239,0.13); }
         .camera-btn {
-            width: 100%; padding: 13px; background: var(--primary); color: white;
-            border: none; border-radius: 12px; font-size: 14px;
-            font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer;
-            transition: all 0.25s; display: flex; align-items: center;
-            justify-content: center; gap: 7px; box-shadow: 0 2px 12px rgba(91,141,239,0.18);
+            width:100%; padding:13px; background:var(--primary); color:white; border:none; border-radius:12px;
+            font-size:14px; font-family:'Cairo',sans-serif; font-weight:700; cursor:pointer; transition:all 0.25s;
+            display:flex; align-items:center; justify-content:center; gap:7px; box-shadow:0 2px 12px rgba(91,141,239,0.18);
         }
-        .camera-btn:active { opacity: 0.88; transform: scale(0.98); }
+        .camera-btn:active { opacity:0.88; transform:scale(0.98); }
 
-        /* =========== RESULT CARD =========== */
+        /* RESULT */
         #resultBox {
-            display: none; width: 100%;
-            background: var(--white); border: 1px solid var(--border);
-            border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-md);
-            animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display:none; width:100%; background:var(--white); border:1px solid var(--border);
+            border-radius:20px; overflow:hidden; box-shadow:var(--shadow-md);
+            animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
         }
+        @keyframes slideUp { from{opacity:0;transform:translateY(20px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
 
-        @keyframes slideUp {
-            from { opacity:0; transform:translateY(20px) scale(0.97); }
-            to   { opacity:1; transform:translateY(0) scale(1); }
-        }
+        .result-header { background:var(--primary-light); border-bottom:1px solid var(--border); padding:14px 18px; display:flex; align-items:center; gap:10px; }
+        .result-header-icon { width:34px; height:34px; background:var(--white); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:17px; border:1px solid var(--border); flex-shrink:0; }
+        .result-header-label { color:var(--text-light); font-size:11px; font-weight:600; margin-bottom:2px; }
+        .result-header-name  { color:var(--text-dark);  font-size:16px; font-weight:700; }
 
-        .result-header {
-            background: var(--primary-light); border-bottom: 1px solid var(--border);
-            padding: 14px 18px; display: flex; align-items: center; gap: 10px;
-        }
+        .codes-row { display:flex; align-items:center; gap:10px; padding:10px 18px; background:var(--bg); border-bottom:1px solid var(--border); flex-wrap:wrap; }
+        .code-badge { display:inline-flex; align-items:center; border-radius:10px; padding:6px 14px; flex-shrink:0; }
+        .code-badge.item-code     { background:var(--primary-light); border:1px solid rgba(91,141,239,0.25); }
+        .code-badge.merchant-code { background:#FFF8EC; border:1px solid rgba(230,126,34,0.25); }
+        .code-badge-inner { display:flex; flex-direction:column; align-items:center; gap:1px; }
+        .code-badge-label { font-size:10px; font-weight:700; letter-spacing:0.5px; opacity:0.8; }
+        .code-badge.item-code .code-badge-label     { color:var(--primary); }
+        .code-badge.merchant-code .code-badge-label { color:#E67E22; }
+        .code-badge-value { font-size:16px; font-weight:900; letter-spacing:1px; }
+        .code-badge.item-code .code-badge-value     { color:var(--primary); }
+        .code-badge.merchant-code .code-badge-value { color:#E67E22; }
 
-        .result-header-icon {
-            width: 34px; height: 34px; background: var(--white); border-radius: 9px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 17px; border: 1px solid var(--border); flex-shrink: 0;
-        }
+        .result-body { padding:20px 18px 16px; }
+        .unit-badge { display:inline-flex; align-items:center; gap:5px; background:var(--bg); border:1px solid var(--border); border-radius:7px; padding:4px 11px; color:var(--text-mid); font-size:12px; font-weight:600; margin-bottom:16px; }
 
-        .result-header-label { color: var(--text-light); font-size: 11px; font-weight: 600; margin-bottom: 2px; }
-        .result-header-name  { color: var(--text-dark);  font-size: 16px; font-weight: 700; }
+        .price-single { text-align:center; padding:10px 0; }
+        .price-single .price-label    { color:var(--text-light); font-size:12px; font-weight:600; margin-bottom:6px; }
+        .price-single .price-value    { color:var(--text-dark);  font-size:52px; font-weight:900; line-height:1; }
+        .price-single .price-currency { font-size:18px; font-weight:700; color:var(--text-mid); }
 
-        /* ===== CODES ROW ===== */
-        .codes-row {
-            display: flex; align-items: center; gap: 10px;
-            padding: 10px 18px; background: var(--bg);
-            border-bottom: 1px solid var(--border); flex-wrap: wrap;
-        }
+        .price-discount { display:flex; flex-direction:column; gap:14px; }
+        .prices-row { display:flex; align-items:center; justify-content:space-around; gap:8px; }
+        .price-original-section { text-align:center; flex:1; }
+        .price-original-label   { color:var(--text-light); font-size:11px; font-weight:600; margin-bottom:4px; }
+        .price-original-value   { color:var(--text-dark); font-size:26px; font-weight:700; position:relative; display:inline-block; }
+        .price-original-value::after { content:''; position:absolute; top:50%; left:-4px; right:-4px; height:1.8px; background:var(--danger); opacity:0.55; border-radius:2px; }
+        .price-original-curr    { color:var(--text-light); font-size:12px; }
+        .prices-divider         { width:1px; height:44px; background:var(--border); }
+        .price-final-section    { text-align:center; flex:1; }
+        .price-final-label      { color:var(--text-light); font-size:11px; font-weight:600; margin-bottom:4px; }
+        .price-final-value      { color:var(--text-dark);  font-size:42px; font-weight:900; line-height:1; }
+        .price-final-curr       { color:var(--text-mid);   font-size:15px; font-weight:700; }
 
-        .code-badge { display: inline-flex; align-items: center; border-radius: 10px; padding: 6px 14px; flex-shrink: 0; }
-        .code-badge.item-code     { background: var(--primary-light); border: 1px solid rgba(91,141,239,0.25); }
-        .code-badge.merchant-code { background: #FFF8EC;              border: 1px solid rgba(230,126,34,0.25); }
-        .code-badge-inner { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-        .code-badge-label { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; opacity: 0.8; }
-        .code-badge.item-code .code-badge-label     { color: var(--primary); }
-        .code-badge.merchant-code .code-badge-label { color: #E67E22; }
-        .code-badge-value { font-size: 16px; font-weight: 900; letter-spacing: 1px; }
-        .code-badge.item-code .code-badge-value     { color: var(--primary); }
-        .code-badge.merchant-code .code-badge-value { color: #E67E22; }
+        .savings-bar { background:#FEF6F6; border:1px solid #F5C6C6; border-radius:12px; padding:10px 14px; display:flex; justify-content:space-around; align-items:center; }
+        .savings-item    { text-align:center; flex:1; }
+        .savings-label   { color:var(--text-light); font-size:11px; margin-bottom:2px; }
+        .savings-value   { color:var(--danger); font-size:16px; font-weight:700; }
+        .savings-divider { width:1px; height:28px; background:#F5C6C6; }
 
-        /* ===== BODY ===== */
-        .result-body { padding: 20px 18px 16px; }
+        #timerBar { height:3px; background:var(--border); border-radius:2px; margin-top:16px; overflow:hidden; }
+        #timerProgress { height:100%; background:var(--primary); border-radius:2px; transition:width linear; }
 
-        .unit-badge {
-            display: inline-flex; align-items: center; gap: 5px;
-            background: var(--bg); border: 1px solid var(--border);
-            border-radius: 7px; padding: 4px 11px;
-            color: var(--text-mid); font-size: 12px; font-weight: 600;
-            margin-bottom: 16px;
-        }
+        /* NOT FOUND */
+        #notFoundBox { display:none; width:100%; background:var(--white); border:1px solid #F5C6C6; border-radius:20px; padding:28px; text-align:center; box-shadow:var(--shadow); animation:slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+        #notFoundBox .nf-icon { font-size:40px; margin-bottom:8px; display:block; }
+        #notFoundBox p     { color:var(--danger); font-size:17px; font-weight:700; }
+        #notFoundBox small { color:var(--text-light); font-size:12px; }
 
-        .price-single { text-align: center; padding: 10px 0; }
-        .price-single .price-label    { color: var(--text-light); font-size: 12px; font-weight: 600; margin-bottom: 6px; }
-        .price-single .price-value    { color: var(--text-dark);  font-size: 52px; font-weight: 900; line-height: 1; }
-        .price-single .price-currency { font-size: 18px; font-weight: 700; color: var(--text-mid); }
+        /* CAMERA */
+        #cameraOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:2000; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+        #cameraOverlay.active { display:flex; }
+        .camera-overlay-header { color:white; font-size:16px; font-weight:700; margin-bottom:15px; text-align:center; }
+        .camera-overlay-header p { color:rgba(255,255,255,0.6); font-size:13px; margin-top:5px; }
+        #reader { width:min(320px,90vw); border-radius:16px; overflow:hidden; border:2px solid var(--primary); background:#000; }
+        .close-camera-btn { margin-top:18px; padding:12px 35px; background:white; color:var(--text-dark); border:none; border-radius:12px; font-size:14px; font-family:'Cairo',sans-serif; font-weight:700; cursor:pointer; }
 
-        .price-discount { display: flex; flex-direction: column; gap: 14px; }
-        .prices-row { display: flex; align-items: center; justify-content: space-around; gap: 8px; }
-        .price-original-section { text-align: center; flex: 1; }
-        .price-original-label   { color: var(--text-light); font-size: 11px; font-weight: 600; margin-bottom: 4px; }
-        .price-original-value {
-            color: var(--text-dark); font-size: 26px; font-weight: 700;
-            position: relative; display: inline-block;
-        }
-        .price-original-value::after {
-            content: ''; position: absolute; top: 50%; left: -4px; right: -4px;
-            height: 1.8px; background: var(--danger); opacity: 0.55; border-radius: 2px;
-        }
-        .price-original-curr { color: var(--text-light); font-size: 12px; }
-        .prices-divider { width: 1px; height: 44px; background: var(--border); }
-        .price-final-section { text-align: center; flex: 1; }
-        .price-final-label   { color: var(--text-light); font-size: 11px; font-weight: 600; margin-bottom: 4px; }
-        .price-final-value   { color: var(--text-dark);  font-size: 42px; font-weight: 900; line-height: 1; }
-        .price-final-curr    { color: var(--text-mid);   font-size: 15px; font-weight: 700; }
+        /* SETTINGS */
+        #settingsToggle { position:fixed; bottom:18px; left:18px; width:40px; height:40px; background:rgba(0,0,0,0.04); border:1px solid rgba(0,0,0,0.07); border-radius:50%; cursor:pointer; color:rgba(0,0,0,0.18); font-size:17px; z-index:100; transition:all 0.25s; display:flex; align-items:center; justify-content:center; }
+        #settingsToggle:hover { background:rgba(0,0,0,0.08); color:rgba(0,0,0,0.45); }
 
-        .savings-bar {
-            background: #FEF6F6; border: 1px solid #F5C6C6;
-            border-radius: 12px; padding: 10px 14px;
-            display: flex; justify-content: space-around; align-items: center;
-        }
-        .savings-item    { text-align: center; flex: 1; }
-        .savings-label   { color: var(--text-light); font-size: 11px; margin-bottom: 2px; }
-        .savings-value   { color: var(--danger); font-size: 16px; font-weight: 700; }
-        .savings-divider { width: 1px; height: 28px; background: #F5C6C6; }
-
-        #timerBar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 16px; overflow: hidden; }
-        #timerProgress { height: 100%; background: var(--primary); border-radius: 2px; transition: width linear; }
-
-        /* =========== NOT FOUND =========== */
-        #notFoundBox {
-            display: none; width: 100%;
-            background: var(--white); border: 1px solid #F5C6C6;
-            border-radius: 20px; padding: 28px; text-align: center;
-            box-shadow: var(--shadow);
-            animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        #notFoundBox .nf-icon { font-size: 40px; margin-bottom: 8px; display: block; }
-        #notFoundBox p     { color: var(--danger); font-size: 17px; font-weight: 700; }
-        #notFoundBox small { color: var(--text-light); font-size: 12px; }
-
-        /* =========== CAMERA MODAL =========== */
-        #cameraModal {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.88); z-index: 2000;
-            flex-direction: column; align-items: center; justify-content: center; padding: 20px;
-        }
-        #cameraModal.active { display: flex; }
-        .camera-header { color: white; font-size: 16px; font-weight: 700; margin-bottom: 18px; }
-        #reader { width: min(300px,88vw); border-radius: 16px; overflow: hidden; border: 2px solid var(--primary); }
-        .close-camera-btn {
-            margin-top: 18px; padding: 11px 32px;
-            background: white; color: var(--text-dark);
-            border: none; border-radius: 12px;
-            font-size: 14px; font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer;
-        }
-
-        /* =========== SETTINGS TOGGLE =========== */
-        #settingsToggle {
-            position: fixed; bottom: 18px; left: 18px;
-            width: 40px; height: 40px;
-            background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.07);
-            border-radius: 50%; cursor: pointer;
-            color: rgba(0,0,0,0.18); font-size: 17px;
-            z-index: 100; transition: all 0.25s;
-            display: flex; align-items: center; justify-content: center;
-        }
-        #settingsToggle:hover { background: rgba(0,0,0,0.08); color: rgba(0,0,0,0.45); }
-
-        /* =========== PASSWORD MODAL =========== */
-        #passwordModal {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.35);
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-            z-index: 3000; align-items: center; justify-content: center; padding: 20px;
-        }
-        #passwordModal.active { display: flex; }
-        .password-box {
-            background: var(--white); border: 1px solid var(--border);
-            border-radius: 22px; padding: 32px 26px;
-            width: 100%; max-width: 320px; text-align: center; box-shadow: var(--shadow-md);
-        }
-        .password-box .lock-icon { font-size: 40px; margin-bottom: 10px; display: block; }
-        .password-box h3 { color: var(--text-dark); font-size: 18px; font-weight: 700; margin-bottom: 18px; }
-        .password-box input {
-            width: 100%; padding: 13px; background: var(--bg); border: 1.5px solid var(--border);
-            border-radius: 11px; color: var(--text-dark);
-            font-size: 18px; font-family: 'Cairo', sans-serif;
-            text-align: center; letter-spacing: 4px;
-            outline: none; margin-bottom: 8px; transition: border-color 0.25s;
-        }
-        .password-box input:focus { border-color: var(--primary); }
-        #pwError { color: var(--danger); font-size: 12px; margin-bottom: 10px; display: none; }
-        .pw-buttons { display: flex; gap: 9px; }
+        /* PASSWORD */
+        #passwordModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); backdrop-filter:blur(6px); z-index:3000; align-items:center; justify-content:center; padding:20px; }
+        #passwordModal.active { display:flex; }
+        .password-box { background:var(--white); border:1px solid var(--border); border-radius:22px; padding:32px 26px; width:100%; max-width:320px; text-align:center; box-shadow:var(--shadow-md); }
+        .password-box .lock-icon { font-size:40px; margin-bottom:10px; display:block; }
+        .password-box h3 { color:var(--text-dark); font-size:18px; font-weight:700; margin-bottom:18px; }
+        .password-box input { width:100%; padding:13px; background:var(--bg); border:1.5px solid var(--border); border-radius:11px; color:var(--text-dark); font-size:18px; font-family:'Cairo',sans-serif; text-align:center; letter-spacing:4px; outline:none; margin-bottom:8px; transition:border-color 0.25s; }
+        .password-box input:focus { border-color:var(--primary); }
+        #pwError { color:var(--danger); font-size:12px; margin-bottom:10px; display:none; }
+        .pw-buttons { display:flex; gap:9px; }
         .pw-btn { flex:1; padding:11px; border:none; border-radius:11px; font-family:'Cairo',sans-serif; font-size:14px; font-weight:700; cursor:pointer; }
-        .pw-btn.confirm { background: var(--primary); color: white; }
-        .pw-btn.cancel  { background: var(--bg); color: var(--text-mid); border: 1px solid var(--border); }
+        .pw-btn.confirm { background:var(--primary); color:white; }
+        .pw-btn.cancel  { background:var(--bg); color:var(--text-mid); border:1px solid var(--border); }
 
-        /* =========== SETTINGS PANEL =========== */
-        #settingsPanel {
-            display: none; position: fixed; top: 0; right: 0;
-            width: min(370px,100vw); height: 100vh;
-            background: var(--white); border-left: 1px solid var(--border);
-            z-index: 2500; overflow-y: auto;
-            box-shadow: -4px 0 24px rgba(0,0,0,0.09);
-            animation: panelIn 0.3s ease;
-        }
-        @keyframes panelIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        #settingsPanel.active { display: block; }
-
-        .panel-header {
-            background: var(--primary-light); border-bottom: 1px solid var(--border);
-            padding: 20px 18px; display: flex; align-items: center; justify-content: space-between;
-        }
-        .panel-header h2 { color: var(--text-dark); font-size: 17px; font-weight: 700; }
-        .panel-close {
-            width: 32px; height: 32px; background: var(--white); border: 1px solid var(--border);
-            border-radius: 9px; color: var(--text-mid); font-size: 14px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-        }
-
-        .panel-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-
-        .setting-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
-        .setting-card-title { color: var(--text-mid); font-size: 12px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-        .setting-note {
-            color: var(--text-light); font-size: 11px; margin-bottom: 10px;
-            line-height: 1.7; background: var(--primary-light);
-            border-radius: 8px; padding: 8px 10px; border-right: 3px solid var(--primary);
-        }
-
-        .file-input-wrapper { position: relative; margin-bottom: 9px; }
-        .file-input-wrapper input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 2; }
-        .file-input-display {
-            width: 100%; padding: 11px;
-            background: var(--white); border: 1.5px dashed var(--border);
-            border-radius: 10px; color: var(--text-light); font-size: 12px;
-            font-family: 'Cairo', sans-serif; text-align: center; cursor: pointer; transition: all 0.2s;
-        }
-        .file-input-wrapper:hover .file-input-display { border-color: var(--primary); color: var(--primary); }
-
-        .s-input {
-            width: 100%; padding: 11px 13px;
-            background: var(--white); border: 1.5px solid var(--border);
-            border-radius: 10px; color: var(--text-dark); font-size: 14px;
-            font-family: 'Cairo', sans-serif; outline: none;
-            transition: border-color 0.25s; margin-bottom: 9px;
-        }
-        .s-input:focus { border-color: var(--primary); }
-
-        .s-btn {
-            width: 100%; padding: 11px; border: none; border-radius: 10px;
-            font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: 700;
-            cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .s-btn.primary { background: var(--primary); color: white; }
-        .s-btn.success { background: #27AE60; color: white; }
-        .s-btn:active  { opacity: 0.85; transform: scale(0.98); }
-
-        /* offers */
-        .color-row { display: flex; gap: 10px; align-items: center; margin-bottom: 9px; }
-        .color-row label { color: var(--text-mid); font-size: 12px; font-weight: 600; flex: 1; }
-        .color-row input[type="color"] {
-            width: 44px; height: 36px;
-            border: 1.5px solid var(--border); border-radius: 8px;
-            cursor: pointer; padding: 2px; background: var(--white);
-        }
-
-        .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
-        .toggle-row label { color: var(--text-mid); font-size: 13px; font-weight: 600; }
-        .toggle-switch { position: relative; width: 46px; height: 26px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider {
-            position: absolute; inset: 0; background: #ccc; border-radius: 26px; cursor: pointer; transition: 0.3s;
-        }
-        .toggle-slider::before {
-            content: ''; position: absolute;
-            width: 20px; height: 20px; left: 3px; top: 3px;
-            background: white; border-radius: 50%; transition: 0.3s;
-        }
-        .toggle-switch input:checked + .toggle-slider { background: var(--primary); }
-        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
-
-        .offers-list { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; margin-bottom: 9px; }
-        .offer-item {
-            display: flex; align-items: center; gap: 8px;
-            background: var(--white); border: 1px solid var(--border);
-            border-radius: 9px; padding: 8px 10px;
-        }
-        .offer-item-text { flex: 1; font-size: 13px; color: var(--text-dark); font-weight: 600; }
-        .offer-del-btn {
-            width: 26px; height: 26px;
-            background: #FEF6F6; border: 1px solid #F5C6C6;
-            border-radius: 7px; color: var(--danger);
-            font-size: 13px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        }
-
-        .speed-row { display: flex; gap: 10px; align-items: center; margin-bottom: 9px; }
-        .speed-row label { color: var(--text-mid); font-size: 12px; font-weight: 600; }
-        .speed-btns { display: flex; gap: 6px; flex: 1; }
-        .speed-btn {
-            flex: 1; padding: 7px; border: 1.5px solid var(--border); border-radius: 8px;
-            background: var(--white); color: var(--text-mid);
-            font-size: 12px; font-family: 'Cairo', sans-serif; font-weight: 700;
-            cursor: pointer; transition: all 0.2s; text-align: center;
-        }
-        .speed-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-        #dataStatus {
-            margin-top: 9px; padding: 9px 12px; border-radius: 9px;
-            font-size: 12px; font-weight: 600; text-align: center;
-        }
-        #dataStatus.loaded { background: var(--success-bg); color: var(--success-text); border: 1px solid #C3E6CB; }
-        #dataStatus.empty  { background: #FEF6F6; color: #C0392B; border: 1px solid #F5C6C6; }
-
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-        @media (max-width: 380px) {
-            .price-final-value { font-size: 34px; }
-            .price-original-value { font-size: 22px; }
-        }
+        /* SETTINGS PANEL */
+        #settingsPanel { display:none; position:fixed; top:0; right:0; width:min(370px,100vw); height:100vh; background:var(--white); border-left:1px solid var(--border); z-index:2500; overflow-y:auto; box-shadow:-4px 0 24px rgba(0,0,0,0.09); animation:panelIn 0.3s ease; }
+        @keyframes panelIn { from{transform:translateX(100%)} to{transform:translateX(0)} }
+        #settingsPanel.active { display:block; }
+        .panel-header { background:var(--primary-light); border-bottom:1px solid var(--border); padding:20px 18px; display:flex; align-items:center; justify-content:space-between; }
+        .panel-header h2 { color:var(--text-dark); font-size:17px; font-weight:700; }
+        .panel-close { width:32px; height:32px; background:var(--white); border:1px solid var(--border); border-radius:9px; color:var(--text-mid); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .panel-body { padding:16px; display:flex; flex-direction:column; gap:12px; }
+        .setting-card { background:var(--bg); border:1px solid var(--border); border-radius:14px; padding:16px; }
+        .setting-card-title { color:var(--text-mid); font-size:12px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+        .setting-note { color:var(--text-light); font-size:11px; margin-bottom:10px; line-height:1.7; background:var(--primary-light); border-radius:8px; padding:8px 10px; border-right:3px solid var(--primary); }
+        .file-input-wrapper { position:relative; margin-bottom:9px; }
+        .file-input-wrapper input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; z-index:2; }
+        .file-input-display { width:100%; padding:11px; background:var(--white); border:1.5px dashed var(--border); border-radius:10px; color:var(--text-light); font-size:12px; font-family:'Cairo',sans-serif; text-align:center; cursor:pointer; transition:all 0.2s; }
+        .file-input-wrapper:hover .file-input-display { border-color:var(--primary); color:var(--primary); }
+        .s-input { width:100%; padding:11px 13px; background:var(--white); border:1.5px solid var(--border); border-radius:10px; color:var(--text-dark); font-size:14px; font-family:'Cairo',sans-serif; outline:none; transition:border-color 0.25s; margin-bottom:9px; }
+        .s-input:focus { border-color:var(--primary); }
+        .s-btn { width:100%; padding:11px; border:none; border-radius:10px; font-family:'Cairo',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px; }
+        .s-btn.primary { background:var(--primary); color:white; }
+        .s-btn.success { background:#27AE60; color:white; }
+        .s-btn.warning { background:#E67E22; color:white; }
+        .s-btn:active  { opacity:0.85; transform:scale(0.98); }
+        .color-row { display:flex; gap:10px; align-items:center; margin-bottom:9px; }
+        .color-row label { color:var(--text-mid); font-size:12px; font-weight:600; flex:1; }
+        .color-row input[type="color"] { width:44px; height:36px; border:1.5px solid var(--border); border-radius:8px; cursor:pointer; padding:2px; background:var(--white); }
+        .toggle-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:9px; }
+        .toggle-row label { color:var(--text-mid); font-size:13px; font-weight:600; }
+        .toggle-switch { position:relative; width:46px; height:26px; }
+        .toggle-switch input { opacity:0; width:0; height:0; }
+        .toggle-slider { position:absolute; inset:0; background:#ccc; border-radius:26px; cursor:pointer; transition:0.3s; }
+        .toggle-slider::before { content:''; position:absolute; width:20px; height:20px; left:3px; top:3px; background:white; border-radius:50%; transition:0.3s; }
+        .toggle-switch input:checked + .toggle-slider { background:var(--primary); }
+        .toggle-switch input:checked + .toggle-slider::before { transform:translateX(20px); }
+        .offers-list { display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto; margin-bottom:9px; }
+        .offer-item { display:flex; align-items:center; gap:8px; background:var(--white); border:1px solid var(--border); border-radius:9px; padding:8px 10px; }
+        .offer-item-text { flex:1; font-size:13px; color:var(--text-dark); font-weight:600; }
+        .offer-del-btn { width:26px; height:26px; background:#FEF6F6; border:1px solid #F5C6C6; border-radius:7px; color:var(--danger); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .speed-row { display:flex; gap:10px; align-items:center; margin-bottom:9px; }
+        .speed-row label { color:var(--text-mid); font-size:12px; font-weight:600; }
+        .speed-btns { display:flex; gap:6px; flex:1; }
+        .speed-btn { flex:1; padding:7px; border:1.5px solid var(--border); border-radius:8px; background:var(--white); color:var(--text-mid); font-size:12px; font-family:'Cairo',sans-serif; font-weight:700; cursor:pointer; transition:all 0.2s; text-align:center; }
+        .speed-btn.active { background:var(--primary); color:white; border-color:var(--primary); }
+        #dataStatus { margin-top:9px; padding:9px 12px; border-radius:9px; font-size:12px; font-weight:600; text-align:center; }
+        #dataStatus.loaded { background:var(--success-bg); color:var(--success-text); border:1px solid #C3E6CB; }
+        #dataStatus.empty  { background:#FEF6F6; color:#C0392B; border:1px solid #F5C6C6; }
+        .sync-status { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:9px; font-size:12px; font-weight:600; margin-bottom:9px; }
+        .sync-status.ok   { background:var(--success-bg); color:var(--success-text); border:1px solid #C3E6CB; }
+        .sync-status.fail { background:#FEF6F6; color:#C0392B; border:1px solid #F5C6C6; }
+        ::-webkit-scrollbar { width:4px; }
+        ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+        @media (max-width:380px) { .price-final-value{font-size:34px} .price-original-value{font-size:22px} }
     </style>
 </head>
 <body>
 
-<!-- ========== MARQUEE - أعلى الصفحة ========== -->
+<!-- LOADING -->
+<div id="loadingScreen">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">جاري تحميل البيانات...</div>
+</div>
+
+<!-- MARQUEE -->
 <div id="offersMarquee">
     <div class="marquee-inner" id="marqueeInner">
         <div class="marquee-track" id="marqueeTrack"></div>
     </div>
 </div>
 
-<!-- ========== MAIN SCREEN ========== -->
+<!-- MAIN -->
 <div id="mainScreen">
     <div class="main-content">
-
         <div id="logoContainer">
             <img id="logoImg" src="" alt="Logo">
         </div>
 
-        <!-- Input Card -->
         <div class="input-card">
             <div class="input-title">أدخل كود الصنف</div>
             <div class="barcode-wrapper">
                 <span class="barcode-icon">▦</span>
-                <input type="text" id="barcodeInput"
-                    placeholder="امسح أو اكتب الكود هنا"
-                    autocomplete="off" inputmode="numeric" autofocus>
+                <input type="text" id="barcodeInput" placeholder="امسح أو اكتب الكود هنا" autocomplete="off" inputmode="numeric" autofocus>
             </div>
-            <button class="camera-btn" id="cameraBtn">
-                <span>📷</span> مسح بالكاميرا
-            </button>
+            <button class="camera-btn" id="cameraBtn"><span>📷</span> مسح بالكاميرا</button>
         </div>
 
-        <!-- Result Box -->
         <div id="resultBox">
             <div class="result-header">
                 <div class="result-header-icon">📦</div>
@@ -504,7 +280,6 @@
                     <div class="result-header-name" id="productName"></div>
                 </div>
             </div>
-
             <div class="codes-row">
                 <div class="code-badge item-code">
                     <div class="code-badge-inner">
@@ -519,21 +294,12 @@
                     </div>
                 </div>
             </div>
-
             <div class="result-body">
-                <div class="unit-badge">
-                    <span>📐</span>
-                    <span id="productUnit"></span>
-                </div>
-
+                <div class="unit-badge"><span>📐</span><span id="productUnit"></span></div>
                 <div class="price-single" id="singlePriceSection">
                     <div class="price-label">سعر البيع</div>
-                    <div class="price-value">
-                        <span id="singlePrice"></span>
-                        <span class="price-currency"> جنيه</span>
-                    </div>
+                    <div class="price-value"><span id="singlePrice"></span><span class="price-currency"> جنيه</span></div>
                 </div>
-
                 <div class="price-discount" id="discountPriceSection">
                     <div class="prices-row">
                         <div class="price-original-section">
@@ -544,50 +310,38 @@
                         <div class="prices-divider"></div>
                         <div class="price-final-section">
                             <div class="price-final-label">بعد الخصم</div>
-                            <div class="price-final-value">
-                                <span id="discountPrice"></span>
-                                <span class="price-final-curr"> ج</span>
-                            </div>
+                            <div class="price-final-value"><span id="discountPrice"></span><span class="price-final-curr"> ج</span></div>
                         </div>
                     </div>
                     <div class="savings-bar">
-                        <div class="savings-item">
-                            <div class="savings-label">وفرت</div>
-                            <div class="savings-value" id="savingsAmount"></div>
-                        </div>
+                        <div class="savings-item"><div class="savings-label">وفرت</div><div class="savings-value" id="savingsAmount"></div></div>
                         <div class="savings-divider"></div>
-                        <div class="savings-item">
-                            <div class="savings-label">نسبة الخصم</div>
-                            <div class="savings-value" id="savingsPercent"></div>
-                        </div>
+                        <div class="savings-item"><div class="savings-label">نسبة الخصم</div><div class="savings-value" id="savingsPercent"></div></div>
                     </div>
                 </div>
-
                 <div id="timerBar"><div id="timerProgress" style="width:100%"></div></div>
             </div>
         </div>
 
-        <!-- Not Found -->
         <div id="notFoundBox">
             <span class="nf-icon">🔍</span>
             <p>الصنف غير موجود!</p>
             <small>تأكد من الكود وحاول مرة أخرى</small>
         </div>
-
     </div>
 </div>
 
-<!-- ========== CAMERA MODAL ========== -->
-<div id="cameraModal">
-    <div class="camera-header">📷 وجّه الكاميرا على الباركود</div>
+<!-- CAMERA -->
+<div id="cameraOverlay">
+    <div class="camera-overlay-header">📷 مسح الباركود<p>وجّه الكاميرا نحو الكود</p></div>
     <div id="reader"></div>
     <button class="close-camera-btn" id="closeCameraBtn">✕ إغلاق</button>
 </div>
 
-<!-- ========== SETTINGS TOGGLE ========== -->
-<button id="settingsToggle" title="الإعدادات">⚙</button>
+<!-- SETTINGS TOGGLE -->
+<button id="settingsToggle">⚙</button>
 
-<!-- ========== PASSWORD MODAL ========== -->
+<!-- PASSWORD -->
 <div id="passwordModal">
     <div class="password-box">
         <span class="lock-icon">🔐</span>
@@ -601,7 +355,7 @@
     </div>
 </div>
 
-<!-- ========== SETTINGS PANEL ========== -->
+<!-- SETTINGS PANEL -->
 <div id="settingsPanel">
     <div class="panel-header">
         <h2>⚙ لوحة التحكم</h2>
@@ -609,14 +363,13 @@
     </div>
     <div class="panel-body">
 
-        <!-- Excel -->
+        <!-- رفع Excel -->
         <div class="setting-card">
             <div class="setting-card-title"><span>📊</span> رفع ملف الأسعار</div>
             <div class="setting-note">
-                الأعمدة بالترتيب:<br>
-                A: كود الصنف &nbsp;|&nbsp; B: كود التاجر (اختياري)<br>
-                C: اسم الصنف &nbsp;|&nbsp; D: الوحدة<br>
-                E: سعر البيع &nbsp;|&nbsp; F: سعر قبل الخصم (اختياري)
+                A: كود الصنف | B: كود التاجر (اختياري)<br>
+                C: اسم الصنف | D: الوحدة<br>
+                E: سعر البيع | F: سعر قبل الخصم (اختياري)
             </div>
             <div class="file-input-wrapper">
                 <input type="file" id="excelFile" accept=".xlsx,.xls">
@@ -624,6 +377,21 @@
             </div>
             <button class="s-btn success" id="uploadExcel">⬆ تحميل البيانات</button>
             <div id="dataStatus" class="empty">لم يتم تحميل بيانات بعد</div>
+        </div>
+
+        <!-- حفظ على GitHub -->
+        <div class="setting-card">
+            <div class="setting-card-title"><span>☁️</span> حفظ على GitHub (للمشاركة)</div>
+            <div class="setting-note">
+                بعد تعديل أي إعداد، اضغط الزر ده عشان التغييرات تظهر لكل الناس
+            </div>
+            <div id="syncStatus" class="sync-status ok" style="display:none;"></div>
+            <input type="text" class="s-input" id="githubToken" placeholder="GitHub Token" type="password">
+            <input type="text" class="s-input" id="githubUser" placeholder="اسم المستخدم على GitHub">
+            <input type="text" class="s-input" id="githubRepo" placeholder="اسم الـ Repository">
+            <button class="s-btn warning" id="saveGithubConfig">💾 حفظ إعدادات GitHub</button>
+            <br><br>
+            <button class="s-btn primary" id="publishToGithub">🚀 نشر التغييرات للجميع</button>
         </div>
 
         <!-- Background -->
@@ -646,18 +414,13 @@
             <button class="s-btn primary" id="uploadLogo">تطبيق اللوجو</button>
         </div>
 
-        <!-- ===== OFFERS ===== -->
+        <!-- Offers -->
         <div class="setting-card">
             <div class="setting-card-title"><span>🎉</span> إدارة العروض</div>
-
             <div class="toggle-row">
                 <label>إظهار العروض</label>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="offersVisible">
-                    <span class="toggle-slider"></span>
-                </label>
+                <label class="toggle-switch"><input type="checkbox" id="offersVisible"><span class="toggle-slider"></span></label>
             </div>
-
             <div class="color-row">
                 <label>لون الخط</label>
                 <input type="color" id="offerTextColor" value="#FFFFFF">
@@ -666,9 +429,8 @@
                 <label>لون الخلفية</label>
                 <input type="color" id="offerBgColor" value="#E74C3C">
             </div>
-
             <div class="speed-row">
-                <label>سرعة الحركة</label>
+                <label>السرعة</label>
                 <div class="speed-btns">
                     <button class="speed-btn" data-speed="15">بطيء</button>
                     <button class="speed-btn active" data-speed="8">متوسط</button>
@@ -676,13 +438,8 @@
                     <button class="speed-btn" data-speed="2">فوري</button>
                 </div>
             </div>
-
-            <button class="s-btn primary" id="saveOfferColors" style="margin-bottom:12px;">
-                💾 حفظ الإعدادات
-            </button>
-
+            <button class="s-btn primary" id="saveOfferColors" style="margin-bottom:12px;">💾 حفظ إعدادات العروض</button>
             <div class="offers-list" id="offersList"></div>
-
             <input type="text" class="s-input" id="newOfferInput" placeholder="اكتب نص العرض هنا...">
             <button class="s-btn success" id="addOfferBtn">➕ إضافة العرض</button>
         </div>
@@ -697,7 +454,7 @@
         <!-- Password -->
         <div class="setting-card">
             <div class="setting-card-title"><span>🔑</span> كلمة المرور</div>
-            <input type="password" class="s-input" id="newPassword" placeholder="كلمة المرور الجديدة" inputmode="numeric">
+            <input type="password" class="s-input" id="newPassword" placeholder="كلمة المرور الجديدة">
             <button class="s-btn primary" id="savePasswordBtn">حفظ كلمة المرور</button>
         </div>
 
@@ -705,15 +462,21 @@
 </div>
 
 <script>
-// ============ VARIABLES ============
-let productsData  = {};
-let merchantIndex = {};
+// ============ CONFIG ============
+// *** غير دول باسمك على GitHub ***
+const GITHUB_USER = localStorage.getItem('githubUser') || 'YOUR_USERNAME';
+const GITHUB_REPO = localStorage.getItem('githubRepo') || 'price-checker';
+const DATA_URL    = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/data.json`;
+
+let productsData    = {};
+let merchantIndex   = {};
 let displayDuration = 10000;
-let hideTimer     = null;
-let adminPassword = '1234';
-let html5QrCode   = null;
-let offersList    = [];
-let marqueeSpeed  = 8;
+let hideTimer       = null;
+let adminPassword   = '1234';
+let html5QrCode     = null;
+let offersList      = [];
+let marqueeSpeed    = 8;
+let remoteData      = {};
 
 function roundPrice(val) { return Math.round(parseFloat(val)); }
 
@@ -725,34 +488,144 @@ function buildMerchantIndex() {
     }
 }
 
+// ============ LOAD FROM GITHUB ============
+async function loadFromGitHub() {
+    try {
+        const res  = await fetch(DATA_URL + '?t=' + Date.now());
+        const data = await res.json();
+        remoteData = data;
+
+        // تحميل البيانات
+        if (data.products && Object.keys(data.products).length > 0) {
+            productsData = data.products;
+            buildMerchantIndex();
+            updateDataStatus(Object.keys(productsData).length);
+        }
+
+        if (data.background) {
+            document.getElementById('mainScreen').style.backgroundImage = `url(${data.background})`;
+        }
+
+        if (data.logo) {
+            document.getElementById('logoImg').src = data.logo;
+            document.getElementById('logoImg').style.display = 'block';
+        }
+
+        if (data.offers)        offersList    = data.offers;
+        if (data.displayDuration) displayDuration = data.displayDuration;
+        if (data.offerTextColor) document.getElementById('offerTextColor').value = data.offerTextColor;
+        if (data.offerBgColor)   document.getElementById('offerBgColor').value   = data.offerBgColor;
+        if (data.marqueeSpeed)   marqueeSpeed = data.marqueeSpeed;
+        if (data.offersVisible)  document.getElementById('offersVisible').checked = data.offersVisible;
+
+        document.getElementById('displayTime').value = displayDuration / 1000;
+
+        renderOffersList();
+        applyMarquee();
+
+    } catch (err) {
+        // لو فشل التحميل من GitHub - استخدم البيانات المحلية
+        console.log('Using local data');
+        if (localStorage.getItem('productsData')) {
+            productsData = JSON.parse(localStorage.getItem('productsData'));
+            buildMerchantIndex();
+            updateDataStatus(Object.keys(productsData).length);
+        }
+        if (localStorage.getItem('offersList')) offersList = JSON.parse(localStorage.getItem('offersList'));
+        renderOffersList();
+        applyMarquee();
+    } finally {
+        // إخفاء شاشة التحميل
+        document.getElementById('loadingScreen').style.display = 'none';
+        document.getElementById('barcodeInput').focus();
+    }
+}
+
+// ============ PUBLISH TO GITHUB ============
+async function publishToGitHub() {
+    const token = localStorage.getItem('githubToken');
+    const user  = localStorage.getItem('githubUser');
+    const repo  = localStorage.getItem('githubRepo');
+
+    if (!token || !user || !repo) {
+        alert('❌ اضبط إعدادات GitHub الأول!');
+        return;
+    }
+
+    const btn = document.getElementById('publishToGithub');
+    btn.textContent = '⏳ جاري النشر...';
+    btn.disabled = true;
+
+    try {
+        // تجهيز البيانات
+        const dataToSave = {
+            products:       productsData,
+            background:     localStorage.getItem('bgImage') || '',
+            logo:           localStorage.getItem('logoImage') || '',
+            offers:         offersList,
+            offersVisible:  document.getElementById('offersVisible').checked,
+            offerTextColor: document.getElementById('offerTextColor').value,
+            offerBgColor:   document.getElementById('offerBgColor').value,
+            marqueeSpeed:   marqueeSpeed,
+            displayDuration: displayDuration,
+            updatedAt:      new Date().toISOString()
+        };
+
+        // الحصول على SHA الملف الحالي
+        const getRes = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/data.json`, {
+            headers: { 'Authorization': `token ${token}` }
+        });
+
+        let sha = null;
+        if (getRes.ok) {
+            const fileData = await getRes.json();
+            sha = fileData.sha;
+        }
+
+        // رفع الملف الجديد
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataToSave, null, 2))));
+
+        const putRes = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/data.json`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Content-Type':  'application/json'
+            },
+            body: JSON.stringify({
+                message: 'Update data - ' + new Date().toLocaleString('ar'),
+                content: content,
+                sha:     sha
+            })
+        });
+
+        if (putRes.ok) {
+            showSyncStatus('✅ تم النشر! سيظهر للجميع خلال ثواني', 'ok');
+        } else {
+            throw new Error('فشل الرفع');
+        }
+
+    } catch (err) {
+        showSyncStatus('❌ فشل النشر! تأكد من الـ Token', 'fail');
+    } finally {
+        btn.textContent = '🚀 نشر التغييرات للجميع';
+        btn.disabled = false;
+    }
+}
+
+function showSyncStatus(msg, type) {
+    const el = document.getElementById('syncStatus');
+    el.textContent = msg;
+    el.className = `sync-status ${type}`;
+    el.style.display = 'flex';
+    setTimeout(() => el.style.display = 'none', 4000);
+}
+
 // ============ INIT ============
 window.onload = () => {
-    if (localStorage.getItem('adminPassword'))   adminPassword = localStorage.getItem('adminPassword');
-    if (localStorage.getItem('displayDuration')) {
-        displayDuration = parseInt(localStorage.getItem('displayDuration'));
-        document.getElementById('displayTime').value = displayDuration / 1000;
-    }
-    if (localStorage.getItem('bgImage'))
-        document.getElementById('mainScreen').style.backgroundImage = `url(${localStorage.getItem('bgImage')})`;
-    if (localStorage.getItem('logoImage')) {
-        document.getElementById('logoImg').src = localStorage.getItem('logoImage');
-        document.getElementById('logoImg').style.display = 'block';
-    }
-    if (localStorage.getItem('productsData')) {
-        productsData = JSON.parse(localStorage.getItem('productsData'));
-        buildMerchantIndex();
-        updateDataStatus(Object.keys(productsData).length);
-    }
-
-    if (localStorage.getItem('offersList'))
-        offersList = JSON.parse(localStorage.getItem('offersList'));
-
-    document.getElementById('offersVisible').checked = localStorage.getItem('offersVisible') === 'true';
-
-    if (localStorage.getItem('offerTextColor'))
-        document.getElementById('offerTextColor').value = localStorage.getItem('offerTextColor');
-    if (localStorage.getItem('offerBgColor'))
-        document.getElementById('offerBgColor').value = localStorage.getItem('offerBgColor');
+    if (localStorage.getItem('adminPassword')) adminPassword = localStorage.getItem('adminPassword');
+    if (localStorage.getItem('githubToken'))   document.getElementById('githubToken').value = localStorage.getItem('githubToken');
+    if (localStorage.getItem('githubUser'))    document.getElementById('githubUser').value  = localStorage.getItem('githubUser');
+    if (localStorage.getItem('githubRepo'))    document.getElementById('githubRepo').value  = localStorage.getItem('githubRepo');
     if (localStorage.getItem('marqueeSpeed')) {
         marqueeSpeed = parseInt(localStorage.getItem('marqueeSpeed'));
         document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
@@ -760,9 +633,8 @@ window.onload = () => {
         if (btn) btn.classList.add('active');
     }
 
-    renderOffersList();
-    applyMarquee();
-    document.getElementById('barcodeInput').focus();
+    // تحميل من GitHub
+    loadFromGitHub();
 };
 
 // ============ FILE LABELS ============
@@ -803,9 +675,6 @@ function searchProduct(code) {
     }
 
     if (product) {
-        // إخفاء لوحة المفاتيح عند العثور على المنتج
-        document.getElementById('barcodeInput').blur();
-
         document.getElementById('productName').textContent = product.name;
         document.getElementById('productUnit').textContent = product.unit;
         document.getElementById('displayItemCode').textContent = itemCode;
@@ -818,21 +687,16 @@ function searchProduct(code) {
         }
 
         const finalPrice  = roundPrice(product.price);
-        const origPrice   = (product.originalPrice !== null && product.originalPrice !== undefined) 
-                            ? roundPrice(product.originalPrice) 
-                            : null;
-
-        const hasDiscount = origPrice !== null && origPrice > 0;
+        const origPrice   = product.originalPrice ? roundPrice(product.originalPrice) : null;
+        const hasDiscount = origPrice && origPrice > finalPrice;
 
         if (hasDiscount) {
             const saved   = origPrice - finalPrice;
-            const percent = origPrice > 0 ? Math.round((saved / origPrice) * 100) : 0;
-
+            const percent = Math.round((saved / origPrice) * 100);
             document.getElementById('originalPrice').textContent  = origPrice;
             document.getElementById('discountPrice').textContent  = finalPrice;
-            document.getElementById('savingsAmount').textContent  = (saved >= 0 ? saved : 0) + ' جنيه';
-            document.getElementById('savingsPercent').textContent = (percent >= 0 ? percent : 0) + '%';
-            
+            document.getElementById('savingsAmount').textContent  = saved + ' جنيه';
+            document.getElementById('savingsPercent').textContent = percent + '%';
             document.getElementById('singlePriceSection').style.display   = 'none';
             document.getElementById('discountPriceSection').style.display = 'flex';
         } else {
@@ -901,7 +765,7 @@ document.getElementById('uploadExcel').addEventListener('click', () => {
             localStorage.setItem('productsData', JSON.stringify(productsData));
             buildMerchantIndex();
             updateDataStatus(count);
-            alert(`✅ تم تحميل ${count} صنف بنجاح!`);
+            alert(`✅ تم تحميل ${count} صنف! اضغط "نشر التغييرات" عشان يظهر للجميع`);
         } catch (err) { alert('❌ خطأ في قراءة الملف!'); }
     };
     reader.readAsArrayBuffer(file);
@@ -913,6 +777,16 @@ function updateDataStatus(count) {
     else           { s.textContent = 'لم يتم تحميل بيانات بعد'; s.className = 'empty'; }
 }
 
+// ============ GITHUB SETTINGS ============
+document.getElementById('saveGithubConfig').addEventListener('click', () => {
+    localStorage.setItem('githubToken', document.getElementById('githubToken').value);
+    localStorage.setItem('githubUser',  document.getElementById('githubUser').value);
+    localStorage.setItem('githubRepo',  document.getElementById('githubRepo').value);
+    alert('✅ تم حفظ إعدادات GitHub!');
+});
+
+document.getElementById('publishToGithub').addEventListener('click', publishToGitHub);
+
 // ============ BACKGROUND ============
 document.getElementById('uploadBg').addEventListener('click', () => {
     const file = document.getElementById('bgFile').files[0];
@@ -921,7 +795,7 @@ document.getElementById('uploadBg').addEventListener('click', () => {
     reader.onload = function(e) {
         document.getElementById('mainScreen').style.backgroundImage = `url(${e.target.result})`;
         localStorage.setItem('bgImage', e.target.result);
-        alert('✅ تم تغيير الخلفية!');
+        alert('✅ تم! اضغط "نشر التغييرات" عشان يظهر للجميع');
     };
     reader.readAsDataURL(file);
 });
@@ -935,7 +809,7 @@ document.getElementById('uploadLogo').addEventListener('click', () => {
         document.getElementById('logoImg').src = e.target.result;
         document.getElementById('logoImg').style.display = 'block';
         localStorage.setItem('logoImage', e.target.result);
-        alert('✅ تم رفع اللوجو!');
+        alert('✅ تم! اضغط "نشر التغييرات" عشان يظهر للجميع');
     };
     reader.readAsDataURL(file);
 });
@@ -946,7 +820,7 @@ document.getElementById('saveTime').addEventListener('click', () => {
     if (val >= 3 && val <= 60) {
         displayDuration = val * 1000;
         localStorage.setItem('displayDuration', displayDuration);
-        alert(`✅ مدة العرض: ${val} ثانية`);
+        alert(`✅ تم!`);
     } else { alert('أدخل قيمة بين 3 و 60'); }
 });
 
@@ -957,11 +831,11 @@ document.getElementById('savePasswordBtn').addEventListener('click', () => {
         adminPassword = pw;
         localStorage.setItem('adminPassword', adminPassword);
         document.getElementById('newPassword').value = '';
-        alert('✅ تم حفظ كلمة المرور!');
+        alert('✅ تم!');
     } else { alert('كلمة المرور 4 أرقام على الأقل'); }
 });
 
-// ============ SETTINGS ============
+// ============ SETTINGS ACCESS ============
 document.getElementById('settingsToggle').addEventListener('click', () => {
     document.getElementById('passwordModal').classList.add('active');
     document.getElementById('pwInput').value = '';
@@ -992,7 +866,6 @@ document.getElementById('closeSettings').addEventListener('click', () => {
 });
 
 // ============ OFFERS ============
-
 document.getElementById('offersVisible').addEventListener('change', function() {
     localStorage.setItem('offersVisible', this.checked);
     applyMarquee();
@@ -1003,6 +876,7 @@ document.querySelectorAll('.speed-btn').forEach(btn => {
         document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         marqueeSpeed = parseInt(this.dataset.speed);
+        localStorage.setItem('marqueeSpeed', marqueeSpeed);
     });
 });
 
@@ -1011,13 +885,11 @@ document.getElementById('saveOfferColors').addEventListener('click', () => {
     localStorage.setItem('offerBgColor',   document.getElementById('offerBgColor').value);
     localStorage.setItem('marqueeSpeed',   marqueeSpeed);
     applyMarquee();
-    alert('✅ تم حفظ الإعدادات!');
+    alert('✅ تم!');
 });
 
 document.getElementById('addOfferBtn').addEventListener('click', addOffer);
-document.getElementById('newOfferInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') addOffer();
-});
+document.getElementById('newOfferInput').addEventListener('keydown', e => { if (e.key === 'Enter') addOffer(); });
 
 function addOffer() {
     const text = document.getElementById('newOfferInput').value.trim();
@@ -1039,10 +911,7 @@ function renderOffersList() {
     offersList.forEach((offer, idx) => {
         const item = document.createElement('div');
         item.className = 'offer-item';
-        item.innerHTML = `
-            <span class="offer-item-text">🎉 ${offer}</span>
-            <button class="offer-del-btn" onclick="deleteOffer(${idx})">✕</button>
-        `;
+        item.innerHTML = `<span class="offer-item-text">🎉 ${offer}</span><button class="offer-del-btn" onclick="deleteOffer(${idx})">✕</button>`;
         container.appendChild(item);
     });
 }
@@ -1058,21 +927,18 @@ function applyMarquee() {
     const marquee   = document.getElementById('offersMarquee');
     const track     = document.getElementById('marqueeTrack');
     const inner     = document.getElementById('marqueeInner');
-    const visible   = localStorage.getItem('offersVisible') === 'true';
-    const textColor = localStorage.getItem('offerTextColor') || '#FFFFFF';
-    const bgColor   = localStorage.getItem('offerBgColor')   || '#E74C3C';
-    const speed     = parseInt(localStorage.getItem('marqueeSpeed')) || marqueeSpeed;
+    const visible   = document.getElementById('offersVisible').checked;
+    const textColor = document.getElementById('offerTextColor').value;
+    const bgColor   = document.getElementById('offerBgColor').value;
+    const speed     = marqueeSpeed;
 
-    if (!visible || offersList.length === 0) {
-        marquee.style.display = 'none';
-        return;
-    }
+    if (!visible || offersList.length === 0) { marquee.style.display = 'none'; return; }
 
     marquee.style.display = 'block';
     inner.style.background = bgColor;
 
     let content = '';
-    for (let r = 0; r < 4; r++) {
+    for (let r = 0; r < 6; r++) {
         offersList.forEach(o => {
             content += `<span class="marquee-text" style="color:${textColor};">🎉 ${o}</span>`;
             content += `<span class="marquee-sep" style="color:${textColor};">✦</span>`;
@@ -1086,28 +952,37 @@ function applyMarquee() {
 }
 
 // ============ CAMERA ============
-document.getElementById('cameraBtn').addEventListener('click', () => {
-    document.getElementById('cameraModal').classList.add('active');
+document.getElementById('cameraBtn').addEventListener('click', async () => {
+    document.getElementById('cameraOverlay').classList.add('active');
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } });
+        stream.getTracks().forEach(t => t.stop());
+        startScanner();
+    } catch (err) {
+        document.getElementById('cameraOverlay').classList.remove('active');
+        if (err.name === 'NotAllowedError') alert('تم رفض صلاحية الكاميرا.');
+    }
+});
+
+function startScanner() {
+    if (html5QrCode) { html5QrCode.stop().catch(() => {}); html5QrCode = null; }
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 230, height: 230 } },
+        { fps: 15, qrbox: { width: 250, height: 250 } },
         (decodedText) => {
             document.getElementById('barcodeInput').value = decodedText;
             closeCamera();
             searchProduct(decodedText.trim());
         },
         () => {}
-    ).catch(() => {
-        alert('❌ لا يمكن الوصول للكاميرا!');
-        closeCamera();
-    });
-});
+    ).catch(() => closeCamera());
+}
 
 document.getElementById('closeCameraBtn').addEventListener('click', closeCamera);
 
 function closeCamera() {
-    document.getElementById('cameraModal').classList.remove('active');
+    document.getElementById('cameraOverlay').classList.remove('active');
     if (html5QrCode) { html5QrCode.stop().catch(() => {}); html5QrCode = null; }
 }
 </script>
